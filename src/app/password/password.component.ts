@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { passwordStrengthBar } from '../models/passwordStrengthBar.model';
+import { PasswordService } from '../services/password.service';
 
 @Component({
   selector: 'app-password',
@@ -6,33 +9,26 @@ import { Component } from '@angular/core';
   styleUrls: ['./password.component.css'],
 })
 export class PasswordComponent {
-  password: string = '';
-  bar0: string = 'grey';
-  bar1: string = 'grey';
-  bar2: string = 'grey';
+  constructor(private passwordService: PasswordService) {}
 
-  checkPasswordStrength(password: string) {
-    let easyRegex = /(?:\d+|[a-zA-Z]+|[!@#$%^&*()-_=+]+)/;
-    let mediumRegex =
-    /^(?:(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+|(?=.*[a-zA-Z])(?=.*[\W_])[a-zA-Z\W_]+|(?=.*\d)(?=.*[\W_])[\d\W_]+)$/;
-    let strongRegex =/^(?=.*\d)(?=.*[a-zA-Z])(?=.*\W).+$/;
+  passwordForm!: FormGroup;
 
-    if (password.length < 8) {
-      this.bar0 = 'red';
-      this.bar1 = 'red';
-      this.bar2 = 'red';
-    } else if (strongRegex.test(password)) {
-      this.bar0 = 'green';
-      this.bar1 = 'green';
-      this.bar2 = 'green';
-    } else if (mediumRegex.test(password)) {
-      this.bar0 = 'yellow';
-      this.bar1 = 'yellow';
-      this.bar2 = 'grey';
-    } else if (easyRegex.test(password)) {
-      this.bar0 = 'red';
-      this.bar1 = 'grey';
-      this.bar2 = 'grey';
+  ngOnInit() {
+    this.passwordForm = new FormGroup({
+      password: new FormControl('', [Validators.required]),
+    });
+  }
+
+  getPasswordStrength(): passwordStrengthBar {
+    const passwordControl = this.passwordForm.get('password');
+    if (passwordControl && passwordControl.touched) {
+      const password = passwordControl.value;
+      return this.passwordService.checkPasswordStrength(password);
     }
+    return {
+      bar0: 'grey',
+      bar1: 'grey',
+      bar2: 'grey',
+    };
   }
 }
